@@ -6,7 +6,7 @@ top and right, respectively.}
   loess.plot(x, response, treatment, responseTitle = "",
     treatmentTitle = "Treatment",
     percentPoints.treat = 0.1,
-    percentPoints.control = 0.01)
+    percentPoints.control = 0.01, ...)
 }
 \arguments{
   \item{x}{vector of propensity scores.}
@@ -27,6 +27,9 @@ top and right, respectively.}
 
   \item{treatmentTitle}{the label to use for the treatment
   legend.}
+
+  \item{...}{other parameters passed to
+  \code{\link{geom_smooth}} and \code{\link{stat_smooth}}.}
 }
 \value{
   a ggplot2 figure
