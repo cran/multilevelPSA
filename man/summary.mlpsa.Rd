@@ -1,0 +1,19 @@
+\name{summary.mlpsa}
+\alias{summary.mlpsa}
+\title{Provides a summary of a \code{mlpsa} class.}
+\usage{
+  \method{summary}{mlpsa} (object,
+    overall.label = "Overall", ...)
+}
+\arguments{
+  \item{object}{the mlpsa object.}
+
+  \item{overall.label}{the label to place in the strata
+  column for the overall results.}
+
+  \item{...}{unused.}
+}
+\description{
+  Provides a summary of a \code{mlpsa} class.
+}
+
