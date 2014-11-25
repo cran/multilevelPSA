@@ -19,7 +19,6 @@
 #' @seealso \code{\link{tree.plot}}
 #' @export
 mlpsa.ctree <- function(vars, formula, level2, ...) {
-	require(party)
 	partyPlyr <- function(x) {
 		excludeVars = names(x) %in% c(level2)
 		x = x[,!excludeVars]
@@ -27,6 +26,11 @@ mlpsa.ctree <- function(vars, formula, level2, ...) {
 		return(tmp.party)
 	}
 	party.results = dlply(vars, level2, partyPlyr, .progress='text')
+	attr(party.results, 'formula') <- formula
+	attr(party.results, 'level2') <- vars[,level2]
+	attr(party.results, 'treatment') <- vars[,as.character(formula)[[2]]]
+	attr(party.results, 'covars') <- vars[,!names(vars) %in% c(level2, as.character(formula)[[2]])]
+	class(party.results) <- c('mlpsa.tree', 'list')
 	return(party.results)
 }
 

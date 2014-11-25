@@ -1,4 +1,4 @@
-utils::globalVariables(c('Diff','ci.min','ci.max','n'))
+utils::globalVariables(c('Diff','ci.min','ci.max','n','ci.min.adjust','ci.max.adjust'))
 
 #' Creates a graphic summarizing the differences between treatment and comparison
 #' groups within and across level two clusters.
@@ -13,6 +13,8 @@ utils::globalVariables(c('Diff','ci.min','ci.max','n'))
 #' @param level1.points logical value indicating whether level 1 strata should be plotted.
 #' @param errorbars logical value indicating whether error bars should be plotted for
 #'        for each level 1.
+#' @param errorbars.adjusted.ci whether the Bonferonni adjusted error bars should
+#'        be plotted (these will be dashed lines).
 #' @param level2.rug.plot logical value indicating whether a rug plot should be
 #'        plotted for level 2.
 #' @param jitter logical value indicating whether level 1 points should be jittered.
@@ -22,6 +24,7 @@ utils::globalVariables(c('Diff','ci.min','ci.max','n'))
 #'        should be labeled.
 #' @param sd If specified, effect sizes will be plotted instead of difference in the
 #'        native unit.
+#' @param xlim the limits of the x-axis.
 #' @param ... currently unused.
 #' @seealso plot.mlpsa
 #' @export
@@ -40,7 +43,7 @@ utils::globalVariables(c('Diff','ci.min','ci.max','n'))
 #' mlpsa.difference.plot(results.psa.math, sd=mean(student.party$mathscore, na.rm=TRUE))
 #' }
 mlpsa.difference.plot <- function(x,
-		xlab='Difference Score', 
+		xlab,
 		ylab=NULL,
 		title=NULL,
 		overall.col="blue",
@@ -48,21 +51,19 @@ mlpsa.difference.plot <- function(x,
 		level2.point.size=NULL,
 		level1.points=TRUE,
 		errorbars=TRUE,
+		errorbars.adjusted.ci=TRUE,
 		level2.rug.plot=TRUE,
 		jitter=TRUE,
 		reorder=TRUE,
 		labelLevel2=TRUE,
 		sd=NULL,
+		xlim,
 		...
 ) {
 	stopifnot(is.mlpsa(x))
 	multilevelPSA = x
 	#ggplot.alpha <- function(...) get("alpha", grep("package:ggplot2$", search()))(...)
 
-	if(missing(multilevelPSA)) {
-		stop('Must provide multilevelPSA from multilevel.psa')
-	}
-	
 	if(reorder) {
 		multilevelPSA$level2.summary = multilevelPSA$level2.summary[
 			order(multilevelPSA$level2.summary$diffwtd),]
@@ -74,11 +75,33 @@ mlpsa.difference.plot <- function(x,
 													 levels=ord.level2)
 	}
 
+	if(missing(xlab)) {
+		if(is.null(sd)) {
+			xlab <- 'Difference Score '
+		} else {
+			xlab <- 'Effect Size'
+		}
+		if(TRUE == all.equal( (multilevelPSA$overall.mnx - multilevelPSA$overall.mny),
+					 multilevelPSA$overall.wtd)) {
+			xlab <- paste0(xlab, ' (', multilevelPSA$x.label, ' - ',
+						   multilevelPSA$y.label, ')')
+		} else if(TRUE == all.equal( (multilevelPSA$overall.mny - multilevelPSA$overall.mnx),
+							 multilevelPSA$overall.wtd)) {
+			xlab <- paste0(xlab, ' (', multilevelPSA$y.label, ' - ',
+						   multilevelPSA$x.label, ')')
+		} else {
+			warning('Cannot determine subtraction order.')
+		}
+	}
+	
 	if(!is.null(sd)) {
 		multilevelPSA$level1.summary$Diff = multilevelPSA$level1.summary$Diff / sd
 		multilevelPSA$level2.summary$diffwtd = multilevelPSA$level2.summary$diffwtd / sd
 		multilevelPSA$level2.summary$ci.min = multilevelPSA$level2.summary$ci.min / sd
 		multilevelPSA$level2.summary$ci.max = multilevelPSA$level2.summary$ci.max / sd
+		multilevelPSA$level2.summary$ci.min.adjust = multilevelPSA$level2.summary$ci.min.adjust / sd
+		multilevelPSA$level2.summary$ci.max.adjust = multilevelPSA$level2.summary$ci.max.adjust / sd
+		multilevelPSA$level1.summary$Diff = multilevelPSA$level1.summary$Diff / sd
 		multilevelPSA$overall.ci = multilevelPSA$overall.ci / sd
 		multilevelPSA$overall.wtd = multilevelPSA$overall.wtd /sd
 		multilevelPSA$plot.range = multilevelPSA$plot.range / sd
@@ -89,10 +112,15 @@ mlpsa.difference.plot <- function(x,
 			geom_hline(yintercept=multilevelPSA$overall.wtd, colour=overall.col, size=1) + 
 			geom_hline(yintercept=multilevelPSA$overall.ci, colour=overall.ci.col, size=1) + 
 			theme(axis.ticks.margin=unit(0, "cm"), axis.text.y=element_text(size=8, angle=0, hjust=.5))
+	if(errorbars.adjusted.ci) {
+		p = p + geom_errorbar(data=multilevelPSA$level2.summary, 
+							  aes(x=level2, y=NULL, ymin=ci.min.adjust, ymax=ci.max.adjust), 
+							  colour='green', alpha=.6, linetype=2)		
+	}
 	if(errorbars) {
 		p = p + geom_errorbar(data=multilevelPSA$level2.summary, 
 							  aes(x=level2, y=NULL, ymin=ci.min, ymax=ci.max), 
-							  colour='green', alpha=.6)
+							  colour='green', alpha=.6, linetype=1)
 	}
 	if(level1.points) {
 		if(jitter) {
@@ -112,10 +140,23 @@ mlpsa.difference.plot <- function(x,
 		p = p + opts(title=title)
 	}
 	
+	if(!missing(xlim)) {
+		p <- p + ylim(xlim)
+	}
+	
 	if(labelLevel2) {
+		if(!missing(xlim)) {
+			labelPos <- min(c(multilevelPSA$level2.summary$ci.min,
+							  multilevelPSA$level1.summary$Diff,
+							  xlim))
+		} else {
+			labelPos <- min(c(multilevelPSA$level2.summary$ci.min,
+							  multilevelPSA$level1.summary$Diff))
+		}
+			#.1 * (max(multilevelPSA$level2.summary$ci.max) - min(multilevelPSA$level2.summary$ci.min))
 		p = p + geom_text(data=multilevelPSA$level2.summary, aes(x=level2, 
 						label=prettyNum(diffwtd, digits=2, drop0trailing=FALSE)), 
-						y=(min(multilevelPSA$level2.summary$ci.min)), size=3, hjust=1)
+						y=labelPos, size=3, hjust=0)
 	}
 			
 	return(p)

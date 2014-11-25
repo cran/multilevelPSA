@@ -29,9 +29,7 @@ mlpsa.distribution.plot <- function(x,
 				   names(multilevelPSA$level2.summary)[4], ' or ',
 				   names(multilevelPSA$level2.summary)[4], sep=''))
 	}
-	xname = 'level2'
-	yname = treat
-	fillname = 'level2'
+	
 	level1.summary = multilevelPSA$level1.summary
 	level2.summary = multilevelPSA$level2.summary
 	unweighted.summary = multilevelPSA$unweighted.summary
@@ -43,14 +41,30 @@ mlpsa.distribution.plot <- function(x,
 		overall = multilevelPSA$overall.mny
 	}
 	
+	# This is possibly a bug with ggplot2. Smaller test reveal that ggplot2 has 
+	# problems with column names of TRUE and FALSE.
+	if(treat == 'TRUE') {
+		names(level1.summary)[names(level1.summary) == 'TRUE'] <- 'Treatment'
+		names(level2.summary)[names(level2.summary) == 'TRUE'] <- 'Treatment'
+		treat <- 'Treatment'
+	} else if(treat == 'FALSE') {
+		names(level1.summary)[names(level1.summary) == 'FALSE'] <- 'Control'
+		names(level2.summary)[names(level2.summary) == 'FALSE'] <- 'Control'
+		treat <- 'Control'
+	}
+	
+	xname = 'level2'
+	yname = treat
+	fillname = 'level2'
+	
 	if(flip) {
 		xname = treat
 		yname = 'level2'
 		p = ggplot(level1.summary, aes_string(x=xname, y=yname))
 		#This is a bit of a hack. I renamed the mnx and mny columns in the mlpsa
 		#function to use the treatment levels. This will duplicate those columns.
-		level2.summary$mnx = multilevelPSA$level2.summary[,5]
-		level2.summary$mny = multilevelPSA$level2.summary[,4]
+		level2.summary$mnx = multilevelPSA$level2.summary[,multilevelPSA$x.lab]
+		level2.summary$mny = multilevelPSA$level2.summary[,multilevelPSA$y.lab]
 		p = p + scale_x_continuous(limits=plot.range)
 		p = p + theme(legend.position='none', 
 					 axis.text.y=element_text(size=axis.text.size, angle=0, hjust=.5))
@@ -60,8 +74,8 @@ mlpsa.distribution.plot <- function(x,
 		p = p + geom_vline(xintercept=overall, colour='blue', size=.6)
 	} else {
 		p = ggplot(level1.summary, aes_string(x=xname, y=yname))
-		level2.summary$mnx = multilevelPSA$level2.summary[,4]
-		level2.summary$mny = multilevelPSA$level2.summary[,5]
+		level2.summary$mnx = multilevelPSA$level2.summary[,multilevelPSA$x.lab]
+		level2.summary$mny = multilevelPSA$level2.summary[,multilevelPSA$y.lab]
 		p = p + scale_y_continuous(limits=plot.range)
 		p = p + theme(legend.position=c(-1,-1), 
 					 axis.text.x=element_text(size=axis.text.size, angle=-90, hjust=0, vjust=.5))
@@ -73,11 +87,11 @@ mlpsa.distribution.plot <- function(x,
 	
 	p = p + geom_point(stat='identity', alpha=.3, size=1.3)
 	if(!is.null(fill.colours)) {
-		p = p + scale_colour_manual(legend=FALSE, values=fill.colours) + 
-			scale_fill_manual(legend=FALSE, values=fill.colours)
+		p = p + scale_colour_manual(guide='none', values=fill.colours) + 
+			scale_fill_manual(guide='none', values=fill.colours)
 	} else if(length(unique(level2.summary$level2)) > 20) {
 		#No legend since the legend would be bigger than the plot
-		p = p + scale_colour_hue(legend=FALSE) + scale_fill_hue(legend=FALSE)
+		p = p + scale_colour_hue(guide='none') + scale_fill_hue(guide='none')
 	} else if(length(unique(level1.summary$level2)) > 8) {
 		p = p + scale_colour_hue(legendlab) + scale_fill_hue(legendlab)
 	} else {
@@ -90,13 +104,13 @@ mlpsa.distribution.plot <- function(x,
 		names(labeling) = c('yname', 'label')
 		p = p + geom_text(data=labeling, x=plot.range[1], 
 						  aes(y=yname, label=prettyNum(label, digits=3, drop0trailing=FALSE)), 
-						  size=3, hjust=0)
+						  size=2.5, hjust=0)
 	} else {
 		labeling = level2.summary[,c(xname, treat)]
 		names(labeling) = c('xname', 'label')
 		p = p + geom_text(data=labeling, y=plot.range[1], 
 						  aes(x=xname, label=prettyNum(label, digits=3, drop0trailing=FALSE)), 
-						  size=3, hjust=0, angle=-90)
+						  size=2.5, hjust=1, angle=-90)
 	}
 	return(p)
 }

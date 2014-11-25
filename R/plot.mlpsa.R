@@ -10,7 +10,6 @@
 #' @param plotExtra a plot to place in the lower left corner.
 #' @param ... parameters passed to \code{\link{mlpsa.circ.plot}} and 
 #'        \code{\link{mlpsa.distribution.plot}}
-#' @S3method plot mlpsa
 #' @method plot mlpsa
 #' @export
 #' @examples
@@ -36,17 +35,17 @@ plot.mlpsa <- function(x, ratio=c(1,2), plotExtra=NULL, ...) {
 	pcirc = mlpsa.circ.plot(mlpsa, legendlab=FALSE, ...) + 
 				theme(legend.position='none') +
 				xlab(NULL) + ylab(NULL)
-	px = mlpsa.distribution.plot(mlpsa, treat=names(mlpsa$level2.summary)[4],
-						flip=TRUE, label=names(mlpsa$level2.summary)[4], ...) +
+	px = mlpsa.distribution.plot(mlpsa, treat=mlpsa$x.lab,
+						flip=TRUE, label=mlpsa$x.lab, ...) +
 				theme(legend.position='none')#, axis.text.x=element_blank())
-	py = mlpsa.distribution.plot(mlpsa, treat=names(mlpsa$level2.summary)[5],
-						flip=FALSE, label=names(mlpsa$level2.summary)[5], ...) +
+	py = mlpsa.distribution.plot(mlpsa, treat=mlpsa$y.lab,
+						flip=FALSE, label=mlpsa$y.lab, ...) +
 				theme(legend.position='none')#, axis.text.y=element_blank())
 	
 	grid_layout = grid.layout(nrow=2, ncol=2, widths=c(ratio[1:2]), heights=ratio[2:1], respect=TRUE)
 	grid.newpage()
 	pushViewport( viewport( layout=grid_layout ) )
-	multilevelPSA:::align.plots(grid_layout, list(pcirc, 1, 2), list(px, 2, 2), list(py, 1, 1))
+	align.plots(grid_layout, list(pcirc, 1, 2), list(px, 2, 2), list(py, 1, 1))
 	if(!is.null(plotExtra)) {
 		pushViewport(viewport(layout.pos.row=2, layout.pos.col=1, just=c("center", "center")))
 		grid.draw(ggplotGrob(plotExtra))
