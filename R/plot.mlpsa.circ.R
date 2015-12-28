@@ -15,15 +15,15 @@ utils::globalVariables(c('mnx','mny','Diff','strata2','xmark','ymark','n','y','e
 #' @param overall.ci.col the color used for the confidence intervals.
 #' @param level1.plot logical value indicating whether level 1 points should be plotted.
 #' @param level1.point.size the size of level 1 points
-#' @param level1.rug.plot the geom to use for plotting a level 1 rug. Possible values
-#'        are geom_rug (for left and bottom), geom_rug_alt (for top and right), or
+#' @param level1.rug.plot the placement for plotting a level 2 rug. Possible values
+#'        are \code{bl} (for left and bottom), \code{tr} (for top and right), or
 #'        NULL (to exclude).
 #' @param level1.projection.lines logical value indicating whether level 1 project lines
 #'        (parallel to the unit line) are drawn.
 #' @param level2.plot logical value indicating whether level 2 points should be plotted.
 #' @param level2.point.size the size of level 2 points
-#' @param level2.rug.plot the geom to use for plotting a level 2 rug. Possible values
-#'        are geom_rug (for left and bottom), geom_rug_alt (for top and right), or
+#' @param level2.rug.plot the placement for plotting a level 2 rug. Possible values
+#'        are \code{bl} (for left and bottom), \code{tr} (for top and right), or
 #'        NULL (to exclude).
 #' @param level2.projection.lines logical value indicating whether level 2 project lines
 #'        (parallel to the unit line) are drawn.
@@ -42,7 +42,8 @@ utils::globalVariables(c('mnx','mny','Diff','strata2','xmark','ymark','n','y','e
 #' data(pisana)
 #' data(pisa.colnames)
 #' data(pisa.psa.cols)
-#' mlctree = mlpsa.ctree(pisana[,c('CNT','PUBPRIV',pisa.psa.cols)], formula=PUBPRIV ~ ., level2='CNT')
+#' mlctree = mlpsa.ctree(pisana[,c('CNT','PUBPRIV',pisa.psa.cols)], 
+#'                       formula=PUBPRIV ~ ., level2='CNT')
 #' student.party = getStrata(mlctree, pisana, level2='CNT')
 #' student.party$mathscore = apply(student.party[,paste0('PV', 1:5, 'MATH')], 1, sum) / 5
 #' results.psa.math = mlpsa(response=student.party$mathscore, 
@@ -64,7 +65,7 @@ mlpsa.circ.plot <- function(x,
 		level1.projection.lines=FALSE,
 		level2.plot=TRUE, 
 		level2.point.size=NULL,
-		level2.rug.plot=geom_rug_alt, 
+		level2.rug.plot='tr', 
 		level2.projection.lines=TRUE,
 		level2.label=FALSE, 
 		unweighted.means=FALSE, 
@@ -102,7 +103,7 @@ mlpsa.circ.plot <- function(x,
 	p = p + coord_fixed(ratio=1) + 
 			scale_x_continuous(limits=plot.range) +
 			scale_y_continuous(limits=plot.range) +
-			theme(axis.ticks.margin=unit(.1, "cm"))
+			theme(axis.text=element_text(margin=ggplot2::unit(.1, "cm")))
 	#Draw dashed lines for unweighted means
 	if(unweighted.means) {
 		p = p + geom_segment(data=unweighted.summary, 
@@ -131,13 +132,14 @@ mlpsa.circ.plot <- function(x,
 	#Rug plots
 	if(!is.null(level1.rug.plot)) {
 		p = p + level1.rug.plot(data=level1.summary, 
+								sides = level1.rug.plot,
 								aes_string(x=names(level1.summary)[5], 
 									y=names(level1.summary)[4], color='level2'), 
 								alpha=.5, size=1)
 	}
 	if(!is.null(level2.rug.plot)) {
-		p = p + level2.rug.plot(data=level2.summary, 
-								aes(x=mnx, y=mny, color=level2), alpha=.6, size=1)
+		p = p + geom_rug(data=level2.summary, sides = level2.rug.plot,
+						aes(x=mnx, y=mny, color=level2), alpha=.6, size=1)
 	}
 	#Projection lines
 	if(level1.projection.lines) {
@@ -221,7 +223,7 @@ mlpsa.circ.plot <- function(x,
 	#Difference disttribution (as x's)
 	p = p + geom_point(data=level2.summary, 
 					   aes(x=xmark, y=ymark, color=level2), # TODO: make the shape a parameter
-					   label='x', stat='identity', size=4, shape=3, alpha=1)
+					   stat='identity', size=4, shape=3, alpha=1)
 	#Set color scheme and legend
 	if(!is.null(fill.colors)) {
 		p = p + scale_color_manual(guide='none', values=fill.colors) + 
