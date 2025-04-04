@@ -6,7 +6,7 @@ data(pisa.psa.cols)
 student <- NULL
 if(require(pisa, quietly=TRUE)) {
 	#If the full PISA dataset is available vis-a-vis the pisa package.
-	#See http://jason.bryer.org/pisa for more information.
+	#See https://github.com/jbryer/pisa for more information.
 	data(pisa.student)
 	data(pisa.school)
 	student <- pisa.student[,c('CNT', 'SCHOOLID',
@@ -70,8 +70,8 @@ results.psa.math$level2.summary[,c('level2','n','Private','Private.n','Public','
 								   'diffwtd','ci.min','ci.max','df')]
 results.psa.math$overall.ci
 
-View(results.psa.math$level1.summary)
-View(results.psa.math$level2.summary)
+# View(results.psa.math$level1.summary)
+# View(results.psa.math$level2.summary)
 
 # These are the two main plots
 plot(results.psa.math)

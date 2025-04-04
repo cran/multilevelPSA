@@ -1,20 +1,26 @@
-Package: multilevelPSA
-License: GPL (>= 2)
-Title: Multilevel Propensity Score Analysis
 Type: Package
-Author: Jason Bryer <jason@bryer.org>
-Maintainer: Jason Bryer <jason@bryer.org>
-Description: Conducts and visualizes propensity score analysis for multilevel, 
-  or clustered data. Bryer & Pruzek (2011) <doi:10.1080/00273171.2011.636693>.
-Version: 1.2.5
-URL: http://github.com/jbryer/multilevelPSA
-BugReports: https://github.com/jbryer/multilevelPSA/issues
-Depends: ggplot2, xtable, R (>= 3.0)
-Imports: PSAgraphics, plyr, psych, reshape, grid, party, MASS
-Suggests: testthat
-Date: 2018-03-22
-RoxygenNote: 6.0.1
+Package: multilevelPSA
+Title: Multilevel Propensity Score Analysis
+Version: 1.3.0
+Date: 2025-04-03
+Authors@R: 
+    person("Jason", "Bryer", , "jason@bryer.org", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-2454-0402"))
+Description: Conducts and visualizes propensity score analysis for
+    multilevel, or clustered data. Bryer & Pruzek (2011)
+    <doi:10.1080/00273171.2011.636693>.
+License: GPL (>= 2)
+URL: https://jbryer.github.io/multilevelPSA/
+BugReports: https://github.com/jbryer/multilevelPSA/issues/
+Depends: ggplot2, R (>= 3.0), xtable
+Imports: grid, MASS, party, plyr, PSAgraphics, psych, reshape
+Suggests: knitr, MatchIt, mice, rmarkdown, testthat
+VignetteBuilder: knitr
+Encoding: UTF-8
+RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2018-03-22 18:43:58 UTC; jbryer
+Packaged: 2025-04-04 11:53:16 UTC; jbryer
+Author: Jason Bryer [aut, cre] (<https://orcid.org/0000-0002-2454-0402>)
+Maintainer: Jason Bryer <jason@bryer.org>
 Repository: CRAN
-Date/Publication: 2018-03-22 20:21:26 UTC
+Date/Publication: 2025-04-04 13:10:02 UTC
